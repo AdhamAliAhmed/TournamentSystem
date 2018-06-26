@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Troschuetz.Random" Version="4.3.0" />
+    <PackageReference Include="Xamarin.Forms" Version="3.1.0.583944" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web.Extensions">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Web.Extensions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
