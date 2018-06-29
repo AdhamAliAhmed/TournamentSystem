@@ -97,6 +97,16 @@ namespace TournamentSystem.Core
         ///The name of the challenger
         /// </summary>
         public string Name { get; private set; }
+
+        /// <summary>
+        /// Read-only property for the first name of the challenger
+        /// </summary>
+        public readonly string FirstName;
+        /// <summary>
+        /// Read-only property for the last name of the challenger
+        /// </summary>
+        public readonly string LastName;
+
         /// <summary>
         ///The points matches user to determine whether the player is a winner or a loser
         /// </summary>
@@ -118,6 +128,9 @@ namespace TournamentSystem.Core
                 throw new ArgumentNullException(name, "Challenger name CANNOT be whether null or empty");
 
             Name = name;
+            int seperatorIndex = name.IndexOf(' ');
+            FirstName = seperatorIndex != 0 ? name.Substring(0, seperatorIndex) : name;
+            LastName = seperatorIndex != 0 ? name.Substring(seperatorIndex+1) : null;
         }
         #endregion
 
