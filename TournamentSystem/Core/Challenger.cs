@@ -129,8 +129,8 @@ namespace TournamentSystem.Core
 
             Name = name;
             int seperatorIndex = name.IndexOf(' ');
-            FirstName = seperatorIndex != 0 ? name.Substring(0, seperatorIndex) : name;
-            LastName = seperatorIndex != 0 ? name.Substring(seperatorIndex+1) : null;
+            FirstName = seperatorIndex != -1 ? name.Substring(0, seperatorIndex) : name;
+            LastName = seperatorIndex != -1 ? name.Substring(seperatorIndex+1) : null;
         }
         #endregion
 
