@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TournamentSystem.Core;
 
@@ -21,6 +22,7 @@ namespace TournamentSystem.RankingSystem
             Rankable = rankable;
         }
 
+        #region Properties
         /// <summary>
         /// Tournament passed to rank
         /// </summary>
@@ -44,19 +46,41 @@ namespace TournamentSystem.RankingSystem
         /// <summary>
         /// The losers of the tournament
         /// </summary>
-        public Challenger[] Rest { get; private set; }
+        public Challenger[] Losers { get; private set; }
 
         /// <summary>
         /// Rank the Tournament property called Tournament to 1st place, 2nd place, 3rd place And the rest of the challengers which are losers
         /// </summary>
+        #endregion
+
+        public readonly List<MatchRecord> Matches = new List<MatchRecord>();
         public void Rank()
         {
             First = Rankable.Winner;
             Second = Rankable.Losers[0];
             Third = Rankable.Losers[1];
-            Rest = Rankable.Losers.Skip(2).ToArray();
+            Losers = Rankable.Losers.Skip(2).ToArray();
         }
     }
+
+    public class MatchRecord
+    {
+        public Challenger Challenger1 { get; set; }
+        public Challenger Challenger2 { get; set; }
+        public Group ContainingGroup { get; set; }
+        public int Round { get; set; }
+
+        public MatchRecord(Challenger challenger1, Challenger challenger2, Group containingGroup)
+        {
+            if (challenger1 is null | challenger2 is null | containingGroup is null)
+                throw new ArgumentNullException("Neither of challenger1, challenger2 or containingGroup can be null");
+            Challenger1 = challenger1;
+            Challenger2 = challenger2;
+            ContainingGroup = containingGroup;
+            Round = containingGroup.CurrentRound;
+        }
+    }
+
     /// <summary>
     /// Thrown when attempting to rank a tournament that is not ready to be ranked.
     /// </summary>

@@ -50,7 +50,7 @@ namespace TournamentSystem.Core
         /// Converts a Challenger array into Group implicitly.
         /// </summary>
         /// <param name="challengers">Challenger array to convert</param>
-        public static implicit operator Group(Challenger[] challengers) => new Group(challengers);
+        public static implicit operator Group(List<Challenger> challengers) => new Group(challengers);
         #endregion
 
         #region Events
@@ -93,8 +93,6 @@ namespace TournamentSystem.Core
         #region Back-end private fields
         List<Challenger> _challengers;
 
-        int _currentRound;
-
         int? _exitRound;
 
         List<Challenger> _challengersTemp;
@@ -102,7 +100,24 @@ namespace TournamentSystem.Core
         private bool _exit;
         #endregion
 
+        #region Readonly fields
+        /// <summary>
+        /// Group label. Used for identification. Must be unique among other groups
+        /// </summary>
+        public readonly string GroupLabel;
+        #endregion
+
         #region Front-end public properties
+
+        /// <summary>
+        /// Used by MatchesRecord
+        /// </summary>
+        public int CurrentRound { get; private set; }
+
+        /// <summary>
+        /// Matches played during the group 
+        /// </summary>
+        public List<MatchRecord> Matches { get; private set; } = new List<MatchRecord>();
 
         /// <summary>
         /// The challengers passed to the group
@@ -138,38 +153,34 @@ namespace TournamentSystem.Core
         /// </summary>
         /// <param name="challengers">Challengers to join the tournament</param>
         /// <param name="exitRound">Indicates in which round the process should be killed</param>
-        public Group(Challenger[] challengers, int? exitRound = null)
+        public Group(List<Challenger> challengers, string groupLabel = null ,int? exitRound = null)
         {
-            if (challengers == null || challengers.Length < 1)
+            if (challengers == null || challengers.Count < 1)
                 throw new ArgumentNullException(nameof(challengers), "Challengers list CANNOT be null or less than one");
 
             //Assigning _challengers to challengers after converting it from an array to a List of Challengers explicitly.
-            Challengers = challengers.ToList();
+            Challengers = challengers;
             _challengers = new List<Challenger>(Challengers);
 
             if (_exitRound <= 0)
                 throw new ArgumentOutOfRangeException(nameof(exitRound), "Exit round cannot be less tan or equal to 0");
             _exitRound = exitRound;
 
-            //initializing the used collections by newing them up
+            GroupLabel = groupLabel;
+
+            //initializing the used collections
             _challengersTemp = new List<Challenger>();
             Losers = new List<Challenger>();
             Remaining = new List<Challenger>();
             //subscribing to the CurrentRoundLeveledUp event
             CurrentRoundLeveledUp += Group_CurrentRoundLeveledUp;
-            Started += Group_Started;
+
             Finished += Group_Finished;
         }
 
         #endregion
 
         #region Methods
-        private void Group_Started(object sender, EventArgs e)
-        {
-            //Shuffle the challengers
-            _challengers.Shuffle();
-        }
-
         /// <summary>
         /// returns a bool indicating whether the current instance is equal to the other instance(the Group argument provided)
         /// </summary>
@@ -207,9 +218,9 @@ namespace TournamentSystem.Core
         private void ManageRegularGroup()
         {
             if (_challengers.Count == 1)
-                TakeWinner();
+                Winner= _challengers.First();
 
-            //Looping through the challengers until they are one. (this is the winner)
+            //Looping through the challengers until they are one. (the "winner")
             while (_challengers.Count != 1)
             {
                 //looping through the Challengers list taking every two challengers, putting them in a match and 
@@ -218,6 +229,7 @@ namespace TournamentSystem.Core
                 {
                     //create an object from the Match that will contain the player in the index 'i' with the player in the index 'i+1'.
                     Match match = new Match(_challengers[i], _challengers[i + 1]);
+                    Matches.Add(new MatchRecord(_challengers[i], _challengers[i + 1], this));
                     //Starting the match which will end up with a winner and a loser.
                     match.Start();
                     //Adding the winner to the '_challengersTemp' List.
@@ -229,18 +241,16 @@ namespace TournamentSystem.Core
                 //moving items from challengersTemp to challengers and clean challengers temp in order to set the path for another round
                 HelperMethods.MoveItems(_challengersTemp, ref _challengers, true);
 
-                _currentRound++;
+                CurrentRound++;
                 OnCurrentRoundLeveledUp(this, null);
 
                 if (_exit)
                     return;
             }
 
-            Winner = TakeWinner();
-
+            Winner = _challengers.First();
         }
-        private Challenger TakeWinner() =>
-            _challengers.First();
+            
         #endregion
 
         #region Irregular group
@@ -249,13 +259,15 @@ namespace TournamentSystem.Core
             var nativeChallengers = new List<Challenger>(_challengers);
             var remainingChallengers = FetchRemainigChallengers(ref nativeChallengers);
 
-            var tempGroup = new Group(nativeChallengers.ToArray(), 1);
+            var tempGroup = new Group(nativeChallengers, this.GroupLabel, 1);
             tempGroup.ManageRegularGroup();
 
             var challengersFromRoundOne = tempGroup._challengers;
+
+            Matches.AddRange(tempGroup.Matches);
             Losers.AddRange(tempGroup.Losers);
 
-            nativeChallengers = Enumerable.Concat(challengersFromRoundOne, remainingChallengers).ToList();
+            nativeChallengers = Enumerable.Concat(remainingChallengers, challengersFromRoundOne).ToList();
             _challengers = nativeChallengers;
             ManageRegularGroup();
         }
@@ -290,7 +302,7 @@ namespace TournamentSystem.Core
         {
             if (_exitRound != null)
             {
-                if (_exitRound == _currentRound)
+                if (_exitRound == CurrentRound)
                     _exit = true;
             }
         }

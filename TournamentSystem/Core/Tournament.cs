@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TournamentSystem.Others;
 using TournamentSystem.RankingSystem;
 
 namespace TournamentSystem.Core
@@ -77,6 +76,12 @@ namespace TournamentSystem.Core
         /// The Challengers of the tournament
         /// </summary>
         public List<Challenger> Challengers { get; }
+
+        /// <summary>
+        /// Matches played during the tournament
+        /// </summary>
+        public List<MatchRecord> Matches { get; private set; } = new List<MatchRecord>();
+
         /// <summary>
         /// The first group which contains about the first half of the challengers.
         /// </summary>
@@ -140,29 +145,18 @@ namespace TournamentSystem.Core
 
             var firstGroup = tempCount / 2;
 
-            Group1 = new Group(_challengers.Take(firstGroup).ToArray());
-            Group2 = new Group(_challengers.Skip(firstGroup).ToArray());
+            Group1 = new Group(_challengers.Take(firstGroup).ToList(),"A");
+            Group2 = new Group(_challengers.Skip(firstGroup).ToList(),"B");
 
             Losers = new List<Challenger>();
             Date = DateTime.Now;
 
-            Started += Tournament_Started;
             Finished += Tournament_Finished;
         }
 
         #endregion
 
         #region Methods
-        /// <summary>
-        /// Shuffles the challengers list to increase the randomness
-        /// </summary>
-        /// <param name="sender">the sender of the event</param>
-        /// <param name="e">event arguments</param>
-        private void Tournament_Started(object sender, EventArgs e)
-        {
-            //Shuffle the challengers
-            _challengers.Shuffle();
-        }
 
         /// <summary>
         /// Starts the tournament
@@ -176,6 +170,8 @@ namespace TournamentSystem.Core
             ManageTounamentFinalMatch();
 
             AddLosers(_finalMatch);
+
+            Matches = Enumerable.Concat(Group1.Matches, Group2.Matches).ToList();
 
             OnFinished(this, null);
         }

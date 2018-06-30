@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TournamentSystem.RankingSystem;
 
 namespace TournamentSystem.Core
 {
@@ -11,5 +12,11 @@ namespace TournamentSystem.Core
         /// The Challengers of the competition
         /// </summary>
         List<Challenger> Challengers { get; }
+        /// <summary>
+        /// Matches played during the group/tournament 
+        /// </summary>
+        List<MatchRecord> Matches { get;}
+
+
     }
 }
