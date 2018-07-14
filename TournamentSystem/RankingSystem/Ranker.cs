@@ -57,8 +57,10 @@ namespace TournamentSystem.RankingSystem
         public void Rank()
         {
             First = Rankable.Winner;
-            Second = Rankable.Losers[0];
-            Third = Rankable.Losers[1];
+            var bronzeMatch = new Match(Losers[0], Losers[1]);
+            bronzeMatch.Start();
+            Second = bronzeMatch.Winner;
+            Third = bronzeMatch.Loser;
             Losers = Rankable.Losers.Skip(2).ToArray();
         }
     }

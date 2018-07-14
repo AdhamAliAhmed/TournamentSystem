@@ -17,6 +17,11 @@ namespace TournamentSystem.Core
         /// </summary>
         List<MatchRecord> Matches { get;}
 
+        /// <summary>
+        /// indicates whether to shuffle the tournament\group challengers before staring
+        /// </summary>
+        bool Shuffle { get; }
+
 
     }
 }

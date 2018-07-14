@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TournamentSystem.Others;
 using TournamentSystem.RankingSystem;
 
 namespace TournamentSystem.Core
@@ -73,6 +74,11 @@ namespace TournamentSystem.Core
 
         #region Public properties
         /// <summary>
+        /// indicates whether to shuffle the tournament before it takes place
+        /// </summary>
+        public bool Shuffle { get; private set; }
+
+        /// <summary>
         /// The Challengers of the tournament
         /// </summary>
         public List<Challenger> Challengers { get; }
@@ -127,7 +133,8 @@ namespace TournamentSystem.Core
         /// Takes an list of challengers and divides it into two equal group of challengers(if possible)
         /// </summary>
         /// <param name="challengers">The challengers which are going to join the tournament</param>
-        public Tournament(List<Challenger> challengers)
+        /// <param name="isShuffled">Indicates whether to shuffle the tournament challenger for more randomization</param>
+        public Tournament(List<Challenger> challengers,bool isShuffled = false)
         {
             if (challengers == null || challengers.Count < 2)
                 throw new ArgumentException("The challenger array cannot be null or less than two", "challengers");
@@ -145,18 +152,32 @@ namespace TournamentSystem.Core
 
             var firstGroup = tempCount / 2;
 
-            Group1 = new Group(_challengers.Take(firstGroup).ToList(),"A");
-            Group2 = new Group(_challengers.Skip(firstGroup).ToList(),"B");
+            Shuffle = isShuffled;
+            Group1 = new Group(_challengers.Take(firstGroup).ToList(),"A",Shuffle);
+            Group2 = new Group(_challengers.Skip(firstGroup).ToList(),"B", Shuffle);
 
+            Winner = null;
             Losers = new List<Challenger>();
             Date = DateTime.Now;
 
+            Started += Tournament_Started;
             Finished += Tournament_Finished;
         }
 
         #endregion
 
         #region Methods
+        /// <summary>
+        /// occurs when the tournament starts
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Tournament_Started(object sender, EventArgs e)
+        {
+            if (Shuffle)
+                HelperMethods.Shuffle(_challengers);
+        }
+
 
         /// <summary>
         /// Starts the tournament

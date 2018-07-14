@@ -44,14 +44,7 @@ namespace TournamentSystem.Core
     /// </code>
     /// </example>
     public sealed class Group : IGrouping, IRankable, IEquatable<Group>
-    {
-        #region Over-loadable conversions
-        /// <summary>
-        /// Converts a Challenger array into Group implicitly.
-        /// </summary>
-        /// <param name="challengers">Challenger array to convert</param>
-        public static implicit operator Group(List<Challenger> challengers) => new Group(challengers);
-        #endregion
+    { 
 
         #region Events
         /// <summary>
@@ -115,6 +108,11 @@ namespace TournamentSystem.Core
         public int CurrentRound { get; private set; }
 
         /// <summary>
+        /// indicates whether to shuffle the group before the tournament starts
+        /// </summary>
+        public bool Shuffle { get; private set; }
+
+        /// <summary>
         /// Matches played during the group 
         /// </summary>
         public List<MatchRecord> Matches { get; private set; } = new List<MatchRecord>();
@@ -146,6 +144,14 @@ namespace TournamentSystem.Core
 
         #endregion
 
+        #region Over-loadable conversions
+        /// <summary>
+        /// Converts a Challenger array into Group implicitly.
+        /// </summary>
+        /// <param name="challengers">Challenger array to convert</param>
+        public static implicit operator Group(List<Challenger> challengers) => new Group(challengers, null,false);
+        #endregion
+
         #region Constructor/s
 
         /// <summary>
@@ -153,7 +159,7 @@ namespace TournamentSystem.Core
         /// </summary>
         /// <param name="challengers">Challengers to join the tournament</param>
         /// <param name="exitRound">Indicates in which round the process should be killed</param>
-        public Group(List<Challenger> challengers, string groupLabel = null ,int? exitRound = null)
+        public Group(List<Challenger> challengers, string groupLabel, bool isShuffled, int? exitRound = null)
         {
             if (challengers == null || challengers.Count < 1)
                 throw new ArgumentNullException(nameof(challengers), "Challengers list CANNOT be null or less than one");
@@ -168,6 +174,7 @@ namespace TournamentSystem.Core
 
             GroupLabel = groupLabel;
 
+            Shuffle = isShuffled;
             //initializing the used collections
             _challengersTemp = new List<Challenger>();
             Losers = new List<Challenger>();
@@ -175,8 +182,10 @@ namespace TournamentSystem.Core
             //subscribing to the CurrentRoundLeveledUp event
             CurrentRoundLeveledUp += Group_CurrentRoundLeveledUp;
 
+            Started += Group_Started;
             Finished += Group_Finished;
         }
+
 
         #endregion
 
@@ -190,6 +199,16 @@ namespace TournamentSystem.Core
         /// <summary>
         /// Determines the winner player among punch of players and the losers as well. The winner is going to challenge the winner from the second group in order to raise a winner
         /// </summary>
+
+        /// <summary>
+        /// Occurs when the group takes place
+        /// </summary>
+        private void Group_Started(object sender, EventArgs e)
+        {
+            if (Shuffle)
+                HelperMethods.Shuffle(_challengers);
+        }
+
         public void Start()
         {
             //firing an event indicating that the group is started
@@ -259,7 +278,7 @@ namespace TournamentSystem.Core
             var nativeChallengers = new List<Challenger>(_challengers);
             var remainingChallengers = FetchRemainigChallengers(ref nativeChallengers);
 
-            var tempGroup = new Group(nativeChallengers, this.GroupLabel, 1);
+            var tempGroup = new Group(nativeChallengers, this.GroupLabel, Shuffle ,1);
             tempGroup.ManageRegularGroup();
 
             var challengersFromRoundOne = tempGroup._challengers;

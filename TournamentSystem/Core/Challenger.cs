@@ -108,13 +108,13 @@ namespace TournamentSystem.Core
         public readonly string LastName;
 
         /// <summary>
-        ///The points matches user to determine whether the player is a winner or a loser
+        ///The points that determines whether a player is a winner or a loser
         /// </summary>
         public int Points { get; set; }
         /// <summary>
-        /// Used for UI purposes only
+        /// Color used to identify challenger. Used for UI purposes only
         /// </summary>
-        public Xamarin.Forms.Color Color { get; set; }
+        public Color Color { get; set; }
         #endregion
 
         #region Constructors
